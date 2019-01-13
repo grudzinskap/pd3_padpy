@@ -1,12 +1,29 @@
+from map import *
 import dash
 from dash.dependencies import Input, Output
 import dash_html_components as html
 import dash_core_components as dcc
+import pandas as pd
+import numpy as np
+import plotly
+from plotly.offline import init_notebook_mode, iplot
+import plotly.plotly as py
+plotly.tools.set_credentials_file(username='paula2664', api_key='5sWOk8Fl3wdmjb69qGAb')
 
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+
+
+
+
+
+
+
+
+fig_map = create_map(['e', 'm', 'p'], 0, 0, 0, 2011, 2018)
 
 app.layout = html.Div([
     html.H1('Stack Data Analysis'),
@@ -18,6 +35,9 @@ app.layout = html.Div([
     ]),
     html.Div(id='tabs-content-example')
 ])
+
+
+
 
 
 @app.callback(Output('tabs-content-example', 'children'),
@@ -54,19 +74,22 @@ def render_content(tab):
             )
         ])
     elif tab == 'tab-3-example':
-        return html.Div([
-            html.H3('Tab content 2'),
-            dcc.Graph(
-                id='graph-2-tabs',
-                figure={
-                    'data': [{
-                        'x': [1, 2, 3],
-                        'y': [5, 10, 6],
-                        'type': 'bar'
-                    }]
-                }
-            )
-        ])
+        return html.Div(
+                            [
+                                html.Label('Stack'),
+                                dcc.Checklist(
+                                    id='stack',
+                                    options=[
+                                        {'label': 'ELL', 'value': 'e'},
+                                        {'label': 'Politics', 'value': 'p'},
+                                        {'label': 'Movies', 'value': 'm'}],
+                                    values=['e', 'p', 'm']),
+                                dcc.Graph(
+                                    id='map',
+                                    figure=fig_map)
+                            ]
+                        ),
+
     elif tab == 'tab-4-example':
         return html.Div([
             html.H3('Tab content 2'),
@@ -88,6 +111,12 @@ def render_content(tab):
             )
         ])
 
+app.config['suppress_callback_exceptions']=True
+@app.callback(
+    dash.dependencies.Output('map', 'figure'),
+    [dash.dependencies.Input('stack', 'options')])
+def update_map(stack):
+    return create_map([s.get('value') for s in stack], 0, 0, 0, 2011, 2018)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
