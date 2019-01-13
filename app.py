@@ -1,121 +1,197 @@
-from map import *
 import dash
-from dash.dependencies import Input, Output
-import dash_html_components as html
 import dash_core_components as dcc
+import dash_html_components as html
 import pandas as pd
-import numpy as np
-import plotly
-from plotly.offline import init_notebook_mode, iplot
-import plotly.plotly as py
-plotly.tools.set_credentials_file(username='paula2664', api_key='5sWOk8Fl3wdmjb69qGAb')
+import plotly.graph_objs as go
 
+
+wykres1=[pd.read_csv("wykres1_e", sep="\t"), pd.read_csv("wykres1_p", sep="\t"),pd.read_csv("wykres1_m", sep="\t")]
+merge=[pd.read_csv("merge_e", sep="\t"),pd.read_csv("merge_p", sep="\t"),pd.read_csv("merge_m", sep="\t")]
+mapa=[pd.read_csv("mapa_e", sep="\t"),pd.read_csv("mapa_p", sep="\t"),pd.read_csv("mapa_m", sep="\t")]
+
+names=["English Language Learners Stack Exchange", "Politics Stack Exchange","Movies & TV Stack Exchange"]
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+# app.layout =html.Div([
+#         html.Div([
+#             dcc.Dropdown(
+#                 id='stack',
+#                 options=[{'label': names[i], 'value': i} for i in range(3)],
+#                 value='English Language Learners Stack Exchange'),style={'width': '49%', 'display': 'inline-block'}
+# )
+# dcc.Slider(
+#     id='n-slider',
+#     min=1,
+#     max=15,
+#     value=10,
+#     marks={str(i + 1): str(i + 1) for i in range(15)}
+#
+# )], style = {'width': '49%', 'display': 'inline-block'}),
+#
+# html.Div([dcc.Graph(id='graph-with-slider2'), dcc.Graph(id='graph-with-slider')]
+#          , style={'width': '49%', 'padding': '0px 20px 20px 20px'})
+# ])
 
+app.layout =html.Div([
+            dcc.Dropdown(
+                id='stack',
+                options=[{'label': names[i], 'value': i} for i in range(3)],
+                value=0)
+    ,
+            dcc.Slider(
+               id='n-slider',
+               min=1,
+               max=15,
+               value=10,
+               marks={str(i + 1): str(i + 1) for i in range(15)}
 
-
-
-
-
-
-
-fig_map = create_map(['e', 'm', 'p'], 0, 0, 0, 2011, 2018)
-
-app.layout = html.Div([
-    html.H1('Stack Data Analysis'),
-    dcc.Tabs(id="tabs-example", value='tab-1-example', children=[
-        dcc.Tab(label='Hello', value='tab-1-example'),
-        dcc.Tab(label='Word Cloud', value='tab-2-example'),
-        dcc.Tab(label='Map', value='tab-3-example'),
-        dcc.Tab(label='The best of', value='tab-4-example'),
-    ]),
-    html.Div(id='tabs-content-example')
-])
-
-
-
-
-
-@app.callback(Output('tabs-content-example', 'children'),
-              [Input('tabs-example', 'value')])
-def render_content(tab):
-    if tab == 'tab-1-example':
-        return html.Div([
-            html.H3('Hello in application ..... Choose stack to analyse:'),
-            dcc.Checklist(
-                options=[
-                    {'label': 'English Language Learners Stack Exchange - Q&A for speakers of other languages learning English.', 'value': 'ell'},
-                    {'label': 'Politics Stack Exchange - Q&A for people interested in governments, policies, and political processes.', 'value': 'politics'},
-                    {'label': 'Movies & TV Stack Exchange - Q&A site for movie and tv enthusiasts.', 'value': 'movies'}
-                ],
-                values=[]
             ),
+            html.Div([dcc.Graph(id='graph-with-slider2'), dcc.Graph(id='graph-with-slider'),dcc.Graph(id='graph-with-slider3'),dcc.Graph(id='graph-with-slider4'),dcc.Graph(id='heatmap')]),
 
-            html.H3('Descripion tabs'),
-        ])
-    elif tab == 'tab-2-example':
-        return html.Div([
-            html.H3('Tab content 2'),
-            dcc.Slider(value=4, min=-10, max=20, step=0.5,
-                       labels={-5: '-5 Degrees', 0: '0', 10: '10 Degrees'}),
-            dcc.Graph(
-                id='graph-2-tabs',
-                figure={
-                    'data': [{
-                        'x': [1, 2, 3],
-                        'y': [5, 10, 6],
-                        'type': 'bar'
-                    }]
-                }
-            )
-        ])
-    elif tab == 'tab-3-example':
-        return html.Div(
-                            [
-                                html.Label('Stack'),
-                                dcc.Checklist(
-                                    id='stack',
-                                    options=[
-                                        {'label': 'ELL', 'value': 'e'},
-                                        {'label': 'Politics', 'value': 'p'},
-                                        {'label': 'Movies', 'value': 'm'}],
-                                    values=['e', 'p', 'm']),
-                                dcc.Graph(
-                                    id='map')
-                            ]
-                        ),
+            ],style={'width': '49%', 'display': 'inline-block'})
 
-    elif tab == 'tab-4-example':
-        return html.Div([
-            html.H3('Tab content 2'),
-            dcc.RangeSlider(
-                marks={-1:'-1', 0:'0', 1:'1'},
-                min=-1,
-                max=1,
-                value=[-1, 1]
-            ),
-            dcc.Graph(
-                id='graph-2-tabs',
-                figure={
-                    'data': [{
-                        'x': [1, 2, 3],
-                        'y': [5, 10, 6],
-                        'type': 'bar'
-                    }]
-                }
-            )
-        ])
 
-app.config['suppress_callback_exceptions']=True
+
 @app.callback(
-    dash.dependencies.Output('map', 'figure'),
-    [dash.dependencies.Input('stack', 'options')])
-def update_map(stack):
-    return create_map([s.get('value') for s in stack], 0, 0, 0, 2011, 2018)
+    dash.dependencies.Output('graph-with-slider2', 'figure'),
+    [dash.dependencies.Input('n-slider', 'value'),
+     dash.dependencies.Input('stack', 'value')])
+def update_figure(n, stack):
+    df2 = wykres1[stack].head(n)
+
+    data = [go.Bar(
+        x=df2.TagName,
+        y=df2.Count,
+
+    )]
+
+
+
+    return {
+        'data': data,
+        'layout': go.Layout(
+            xaxis={'title': 'Tags'},
+            yaxis={'title': 'Count'},
+            #margin={'l': 10, 'b': 60, 't': 60, 'r': 400},
+            legend={'x': 0, 'y': 1},
+            title='The most popular tags',
+        )
+    }
+
+@app.callback(
+    dash.dependencies.Output('graph-with-slider', 'figure'),
+    [dash.dependencies.Input('n-slider', 'value'),
+     dash.dependencies.Input('stack', 'value')])
+def update_figure(n,stack):
+
+
+
+
+    trace1 = go.Bar(
+        x=list(merge[stack].country[:n]),
+        y=list(merge[stack].q[:n]),
+        name='Questions'
+    )
+    trace2 = go.Bar(
+        x=list(merge[stack].country[:n]),
+        y=list(merge[stack].ans[:n]),
+        name='Answers'
+    )
+
+    data = [trace1, trace2]
+
+
+    return {
+        'data': data,
+        'layout': go.Layout(
+            barmode='stack',
+            xaxis={'title': 'Tags'},
+            yaxis={'title': 'Count'},
+            #margin={'l': 440, 'b': 40, 't': 10, 'r': 10},
+            legend={'x': 0, 'y': 1},
+            title='Number of posts',
+        )
+    }
+
+@app.callback(
+    dash.dependencies.Output('graph-with-slider3', 'figure'),
+    [dash.dependencies.Input('n-slider', 'value'),
+     dash.dependencies.Input('stack', 'value')])
+def update_figure(n,stack):
+
+
+
+    data = [go.Bar(
+        x=list(merge[stack].sort_values(by="q", ascending=False).country[:n]),
+        y=list(merge[stack].sort_values(by="q", ascending=False).q[:n]),
+    )]
+    return {
+        'data': data,
+        'layout': go.Layout(
+
+            xaxis={'title': 'Tags'},
+            yaxis={'title': 'Count'},
+            #margin={'l': 440, 'b': 40, 't': 10, 'r': 10},
+            legend={'x': 0, 'y': 1},
+            title='Number of questions',
+        )
+    }
+
+
+
+@app.callback(
+    dash.dependencies.Output('graph-with-slider4', 'figure'),
+    [dash.dependencies.Input('n-slider', 'value'),
+     dash.dependencies.Input('stack', 'value')])
+def update_figure(n,stack):
+    data = [go.Bar(
+        x=list(merge[stack].sort_values(by="ans", ascending=False).country[:n]),
+        y=list(merge[stack].sort_values(by="ans", ascending=False).ans[:n]),
+    )]
+
+
+    return {
+        'data': data,
+        'layout': go.Layout(
+
+            xaxis={'title': 'Tags'},
+            yaxis={'title': 'Count'},
+            #margin={'l': 440, 'b': 40, 't': 10, 'r': 10},
+            legend={'x': 0, 'y': 1},
+            title='Number of answers',
+        )
+    }
+
+
+
+@app.callback(
+    dash.dependencies.Output('heatmap', 'figure'),
+    [dash.dependencies.Input('n-slider', 'value')])
+def update_figure(n):
+    df2 = wykres1[0].head(n)
+
+    data = [go.Bar(
+        x=df2.TagName,
+        y=df2.Count
+    )]
+
+
+
+    return {
+        'data': data,
+        'layout': go.Layout(
+            xaxis={'title': 'Tags'},
+            yaxis={'title': 'Count'},
+            #margin={'l': 440, 'b': 40, 't': 10, 'r': 10},
+            legend={'x': 0, 'y': 1},
+            title='The most popular tags',
+        )
+    }
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
