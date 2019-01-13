@@ -85,8 +85,7 @@ def render_content(tab):
                                         {'label': 'Movies', 'value': 'm'}],
                                     values=['e', 'p', 'm']),
                                 dcc.Graph(
-                                    id='map',
-                                    figure=fig_map)
+                                    id='map')
                             ]
                         ),
 
