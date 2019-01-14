@@ -4,6 +4,7 @@ import dash_html_components as html
 import pandas as pd
 import plotly.graph_objs as go
 import numpy as np
+import map
 
 
 
@@ -42,32 +43,25 @@ app.layout =html.Div([
             dcc.Dropdown(
                 id='stack',
                 options=[{'label': names[i], 'value': i} for i in range(3)],
-                value=0)
-
-           ,
-            html.Div([dcc.Graph(id='heatmap'), dcc.Graph(id='graph-with-slider')]),
-
-            ],style={'width': '49%', 'display': 'inline-block'}),
-    html.Div([ dcc.Slider(
+                value=0),
+            html.Div([dcc.Graph(id='heatmap'), dcc.Graph(id='graph-with-slider')])],
+                style={'width': '49%', 'display': 'inline-block'}),
+        html.Div([
+            dcc.Slider(
                id='n-slider',
                min=1,
                max=15,
                value=10,
-               marks={str(i + 1): str(i + 1) for i in range(15)}
-
-            ),
-        html.Div([html.Div(dcc.Markdown("#                 ")),
+               marks={str(i + 1): str(i + 1) for i in range(15)}),
+            html.Div([html.Div(dcc.Markdown("#                 ")),
             html.Div(dcc.Graph(id='graph-with-slider3'),style={'width': '50%', 'display': 'inline-block'}),
-        html.Div(dcc.Graph(id='graph-with-slider4'),style={'width': '50%', 'float': 'right','display': 'inline-block'})]),html.Div(dcc.Markdown("## Post with the largest number of views:")),
-            html.Div(dcc.Markdown('### Politics Stack Exchange - 98 views, USA'
-
-                                  )),html.Div(dcc.Markdown(
-                                              '### English Language Learners Stack Exchange - 9993 views, Asia'
-
-                                  )),html.Div(dcc.Markdown(
-                                  '### Movies & TV Stack Exchange - 99 views, USA'
-                                  ))],style={'width': '49%','float': 'right', 'display': 'inline-block'})
-    ])
+            html.Div(dcc.Graph(id='graph-with-slider4'),style={'width': '50%', 'float': 'right','display': 'inline-block'})])],
+                style={'width': '49%','float': 'right', 'display': 'inline-block', 'bottom' : '0', 'right': '0'
+                       }),
+        html.Div([
+            html.Div([dcc.Graph(id='map')])],
+                style={'width': '49%', 'float': 'right', 'marginTop': '-31%', 'margin-right': '10%'})
+        ])
 
 
 @app.callback(
@@ -75,10 +69,6 @@ app.layout =html.Div([
     [dash.dependencies.Input('n-slider', 'value'),
      dash.dependencies.Input('stack', 'value')])
 def update_figure(n,stack):
-
-
-
-
     trace1 = go.Bar(
         x=list(merge[stack].country[:n]),
         y=list(merge[stack].q[:n]),
@@ -91,7 +81,6 @@ def update_figure(n,stack):
     )
 
     data = [trace1, trace2]
-
 
     return {
         'data': data,
@@ -110,9 +99,6 @@ def update_figure(n,stack):
     [dash.dependencies.Input('n-slider', 'value'),
      dash.dependencies.Input('stack', 'value')])
 def update_figure(n,stack):
-
-
-
     data = [go.Bar(
         x=list(merge[stack].sort_values(by="q", ascending=False).country[:n]),
         y=list(merge[stack].sort_values(by="q", ascending=False).q[:n]),
@@ -142,7 +128,6 @@ def update_figure(n,stack):
         y=list(merge[stack].sort_values(by="ans", ascending=False).ans[:n]),
     )]
 
-
     return {
         'data': data,
         'layout': go.Layout(
@@ -155,8 +140,6 @@ def update_figure(n,stack):
         )
     }
 
-
-
 @app.callback(
     dash.dependencies.Output('heatmap', 'figure'),
     [dash.dependencies.Input('stack', 'value')])
@@ -166,16 +149,17 @@ def update_figure(stack):
                        y=list(mapa[stack].country))
     data = [trace]
 
-
-
     return {
         'data': data,
-        'layout': go.Layout(
+        'layout': go.Layout(title='The most popular tags')}
 
 
-            title='The most popular tags'
-        )
-    }
+@app.callback(
+    dash.dependencies.Output('map', 'figure'),
+    [dash.dependencies.Input('stack', 'value')])
+def update_figure(stack):
+    pom = {0: 'e', 1: 'p', 2: 'm'}
+    return map.create_map(list(pom.get(stack)), 0, 0, 0, 2011, 2018)
 
 
 if __name__ == '__main__':
